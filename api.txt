@@ -1,0 +1,16 @@
+1. Ter vulnerabilidades (podemos abstrair classse -> future work)
+2. Representar arvore interna (parse dos json internally):
+    - construtor recebe json do tipo da classe; meter nos atributos
+
+
+class Literal:
+class Indentifier:
+class BinaryExpression:
+class CallExpression:
+class CallExpression:
+class MemberExpression:
+class AssignmentExpression:
+class ExpressionStatement:
+class IfStatement:
+class WhileStatement:
+class BlockStatement:

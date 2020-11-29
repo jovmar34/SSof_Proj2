@@ -1,12 +1,16 @@
 from ast import *
 
 def getVulns(vulns, ind):
+    ret = []
     for vuln in vulns:
         #FIXME only general tainted or untainted
         if ind in vulns[vuln]['sources']:
             return True
 
     return False
+
+def evalBinary(vulns, curr):
+    return
 
 def seeAssignment(vulns, tainted, left, right):
     l_name = ""
@@ -22,9 +26,12 @@ def seeAssignment(vulns, tainted, left, right):
         tainted[name] = (tainted[name] or tainted[right['name']])
     elif right['type'] == "CallExpression":
         tainted[name] = (tainted[name] or getVulns(vulns, right['callee']['name']))
+    elif right['type'] == "BinaryExpression":
+        tainted[name] = (tainted[name] or evalBinary(vulns, right))
 
-def work(vulns, program):
-    tainted = {}
+def build_tree(vulns, program):
+    root = BlockStatement(program)
+    '''
     stack = []
     unvisited = [program]
 
@@ -39,3 +46,4 @@ def work(vulns, program):
         elif curr['type'] == "AssignmentExpression":
             seeAssignment(vulns, tainted, curr['left'], curr['right'])
             print (tainted)
+    '''

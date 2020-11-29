@@ -1,16 +1,17 @@
 types = {"safe": 0, "tainted": 1, "solved": 2}
 
 class Literal:
-    def __init__(self):
+    # no attribute
+    def __init__(self, json):
         self.tainted = False
 
     def tainted(self):
         return self.tainted
 
 class Indentifier:
-    def __init__(self, name):
-        self.tainted = False
-        self.name = name
+    # self.name = string
+    def __init__(self, json):
+        return
 
     def __repr__(self):
         return "Identifier(" + self.name + ")"
@@ -22,29 +23,19 @@ class Indentifier:
         return self.tainted
 
 class BinaryExpression:
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
+    # self.left : Expression
+    # self.right : Expression
+    def __init__(self, json):
+        return
 
     def tainted(self):
         return (self.right.tainted() or self.left.tainted())
 
 class CallExpression:
-    def __init__(self, func, args):
-        self.func = func
-        self.args = args
-
-    def tainted(self):
-        taint = self.func.tainted()
-        for arg in self.args:
-            taint  = (taint or arg.tainted())
-
-        return taint
-
-class CallExpression:
-    def __init__(self, func, args):
-        self.func = func
-        self.args = args
+    # self.func : Expression
+    # self.args : list(Expression)
+    def __init__(self, json):
+        return
 
     def tainted(self):
         taint = self.func.tainted()
@@ -54,40 +45,48 @@ class CallExpression:
         return taint
 
 class MemberExpression:
-    def __init__(self, obj, prop):
-        self.obj = obj
-        self.property = prop
+    # document.url
+    # self.object : Expression
+    # self.property : Expression
+    def __init__(self, json):
+        return
 
     def tainted(self):
         return self.obj.tainted() or self.property.tainted()
 
 class AssignmentExpression:
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
+    # self.left : Expression
+    # self.right : Expression
+    def __init__(self, json):
+        return
 
     def tainted(self):
         return self.right.tainted()
 
 
 class ExpressionStatement:
-    def __init__(self, expr, directive):
-        self.expr = expr
-        self.directive = directive
+    # self.expression : Expression
+    # self.directive : boolean ?
+    def __init__(self, json):
+        return
 
     def tainted(self):
         return self.expr.tainted()
 
 class IfStatement:
+    # self.test : Expression
+    # self.then : Statement
+    # self.alternative : Statement
+    # does not support directly if else
     def __init__(self, test, then, alt):
-        self.test = test
-        self.then = then
-        self.alt = alt
+        return
 
     def tainted(self):
         return self.test.tainted()
 
 class WhileStatement:
+    # self.test : Expression
+    # self.body : Statement
     def __init__(self, test, body):
         self.test = test
         self.body = body
@@ -96,8 +95,9 @@ class WhileStatement:
         return self.test.tainted()
 
 class BlockStatement:
-    def __init__(self, statements):
-        self.statements = statements
+    # self.statements : list(Statement)
+    def __init__(self, json):
+        
 
     def tainted(self):
         taint = False
