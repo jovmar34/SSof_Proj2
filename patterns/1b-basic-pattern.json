@@ -1,0 +1,8 @@
+[
+    {
+        "vulnerability": "tainted",
+        "sources": ["b"],
+        "sanitizers": [],
+        "sinks": ["d", "e"]
+    }
+]
