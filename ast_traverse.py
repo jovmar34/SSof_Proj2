@@ -31,19 +31,5 @@ def seeAssignment(vulns, tainted, left, right):
 
 def build_tree(vulns, program):
     root = BlockStatement(program)
-    '''
-    stack = []
-    unvisited = [program]
-
-    while len(unvisited) != 0:
-        curr = unvisited[0]
-        unvisited = unvisited[1:]
-
-        if curr['type'] == "Program":
-            unvisited = curr['body'] + unvisited
-        elif curr['type'] == "ExpressionStatement":
-            unvisited = [curr['expression']] + unvisited
-        elif curr['type'] == "AssignmentExpression":
-            seeAssignment(vulns, tainted, curr['left'], curr['right'])
-            print (tainted)
-    '''
+    
+    print(root.toString())

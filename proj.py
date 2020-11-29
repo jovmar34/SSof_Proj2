@@ -21,4 +21,4 @@ print(vulns)
 taints = defaultdict(list)
 with open(sys.argv[1]) as slices_f:
     slice_json = json.load(slices_f)
-    ast_traverse.work(vulns, slice_json)
+    ast_traverse.build_tree(vulns, slice_json)
