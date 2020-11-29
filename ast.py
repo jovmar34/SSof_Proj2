@@ -157,7 +157,7 @@ class WhileStatement:
     def toString(self, level = 0):
         ret = " " * level + "WhileStatement\n" 
         ret += " " * level + "test: " + repr(self.test) + "\n"
-        ret += " " * level + "while: " + self.body.toString(level + 2) + "\n"
+        ret += " " * level + "body:\n" + self.body.toString(level + 2) + "\n"
         return ret
 
     def tainted(self):
@@ -174,10 +174,11 @@ class BlockStatement:
         return "{" + ";\n".join([str(x) for x in self.statements]) + "\n}"
 
     def toString(self, level=0):
-        ret = " " * level + "{\n"
+        ret = " " * level + "BlockStatement\n"
+        ret += " " * level + "{\n"
         for stm in self.statements:
             ret += stm.toString(level + 2)
-        ret += "\n" + " " * level + "}"
+        ret += " " * level + "}"
         return ret
 
     def tainted(self):
