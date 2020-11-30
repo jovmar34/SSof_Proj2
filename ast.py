@@ -43,9 +43,6 @@ class Identifier:
     def __init__(self, json):
         self.name = json['name']
 
-    def __str__(self):
-        return "Identifier(" + self.name + ")"
-
     def __repr__(self):
         return "Identifier<name: " + self.name + ">"
 
@@ -64,17 +61,8 @@ class BinaryExpression:
         self.left = getExpression(json['left'])
         self.right = getExpression(json['right'])
          
-    def __str__(self):
-        return self.left + "operator" + self.right
-
     def __repr__(self):
         return "Binary<left: " + repr(self.left) + "; right: " + repr(self.right) + ">"
-
-    def toString(self):
-        ret = "Binary Expression\n"
-        ret += "left: " + repr(self.left) + "\n"
-        ret += "right" + repr(self.right) + "\n"
-        return ret 
 
     def tainted(self):
         return (self.right.tainted() or self.left.tainted())
@@ -88,19 +76,9 @@ class CallExpression:
         for expr in json['arguments']:
             self.args += [getExpression(expr)]
 
-    def __str__(self):
-        return self.func + "(".join([str(x) for x in self.args]) + ")"
-
     def __repr__(self):
         return "Call<func: " + repr(self.func) + "; args: " + repr(self.args) + ">"
 
-    def toString(self, level=0):
-        ret = " " * level + "Call Expression\n"
-        ret += " " * level + "func: " + repr(self.func) + "\n"
-        for stm in self.statements:
-            ret += stm.toString(level + 2)
-        return ret
-    
     def tainted(self):
         taint = self.func.tainted()
         for arg in self.args:
@@ -116,18 +94,9 @@ class MemberExpression:
         self.object = getExpression(json['object'])
         self.property = getExpression(json['property'])
     
-    def __str__(self, json):
-        return self.object + "." + self.property
-    
     def __repr__(self):
         return "Member<object: " + repr(self.object) + "; property: " + repr(self.property) + ">" 
 
-    def toString(self):
-        ret = "Member Expression:\n"
-        ret += "object: " + repr(self.object) + "\n"
-        ret += "proprety: " + repr(self.property) + "\n"
-        return ret
-    
     def tainted(self):
         return self.obj.tainted() or self.property.tainted()
 
@@ -139,17 +108,8 @@ class AssignmentExpression:
         self.left = getExpression(json['left'])
         self.right = getExpression(json['right'])
 
-    def __str__(self):
-        return self.left + "operator" + self.right
-
     def __repr__(self):
         return "Assignement<left: " + repr(self.left) + "; right: " + repr(self.right) + ">" 
-
-    def toString(self):
-        ret = "AssignmentExpression\n"
-        ret += "left: " + repr(self.left) + "\n"
-        ret += "right" + repr(self.right) + "\n"
-        return ret
 
     def tainted(self):
         return self.right.tainted()
