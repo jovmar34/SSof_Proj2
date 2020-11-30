@@ -30,21 +30,27 @@ def getStatement(json_statement):
 class Literal:
     # no attribute
     def __init__(self, json):
-        return self
+        return
+
+    def __repr__(self):
+        return "Literal"
 
     def tainted(self):
         return self.tainted
 
-class Indentifier:
+class Identifier:
     # self.name = string
     def __init__(self, json):
-        self.name = getExpression(json['name'])
+        self.name = json['name']
 
     def __str__(self):
-        return "Identifier("self.name")"
+        return "Identifier(" + self.name + ")"
+
+    def __repr__(self):
+        return "Identifier<name: " + self.name + ">"
 
     def toString(self):
-        ret += "Identifier\n"
+        ret = "Identifier\n"
         ret += "name: " + repr(self.name) + "\n" 
 
     def tainted(self):
@@ -61,8 +67,11 @@ class BinaryExpression:
     def __str__(self):
         return self.left + "operator" + self.right
 
+    def __repr__(self):
+        return "Binary<left: " + repr(self.left) + "; right: " + repr(self.right) + ">"
+
     def toString(self):
-        ret += "Binary Expression\n"
+        ret = "Binary Expression\n"
         ret += "left: " + repr(self.left) + "\n"
         ret += "right" + repr(self.right) + "\n"
         return ret 
@@ -74,12 +83,16 @@ class CallExpression:
     # self.func : Expression
     # self.args : list(Expression)
     def __init__(self, json):
-        self.func = getExpression(json['func'])
-        for expr in json['args']:
-            self.args += [getStatement(args)]
+        self.args = []
+        self.func = getExpression(json['callee'])
+        for expr in json['arguments']:
+            self.args += [getExpression(expr)]
 
-    def __str__(self, json):
+    def __str__(self):
         return self.func + "(".join([str(x) for x in self.args]) + ")"
+
+    def __repr__(self):
+        return "Call<func: " + repr(self.func) + "; args: " + repr(self.args) + ">"
 
     def toString(self, level=0):
         ret = " " * level + "Call Expression\n"
@@ -106,8 +119,11 @@ class MemberExpression:
     def __str__(self, json):
         return self.object + "." + self.property
     
+    def __repr__(self):
+        return "Member<object: " + repr(self.object) + "; property: " + repr(self.property) + ">" 
+
     def toString(self):
-        ret += "Member Expression:\n"
+        ret = "Member Expression:\n"
         ret += "object: " + repr(self.object) + "\n"
         ret += "proprety: " + repr(self.property) + "\n"
         return ret
@@ -126,8 +142,11 @@ class AssignmentExpression:
     def __str__(self):
         return self.left + "operator" + self.right
 
+    def __repr__(self):
+        return "Assignement<left: " + repr(self.left) + "; right: " + repr(self.right) + ">" 
+
     def toString(self):
-        ret += "Binary Expression\n"
+        ret = "AssignmentExpression\n"
         ret += "left: " + repr(self.left) + "\n"
         ret += "right" + repr(self.right) + "\n"
         return ret
