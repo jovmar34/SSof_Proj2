@@ -30,7 +30,7 @@ def getStatement(json_statement):
 class Literal:
     # no attribute
     def __init__(self, json):
-        self.tainted = False
+        return self
 
     def tainted(self):
         return self.tainted
@@ -38,13 +38,14 @@ class Literal:
 class Indentifier:
     # self.name = string
     def __init__(self, json):
-        return
+        self.name = getExpression(json['name'])
 
-    def __repr__(self):
-        return "Identifier(" + self.name + ")"
+    def __str__(self):
+        return "Identifier("self.name")"
 
-    def setTainted(self, tainted):
-        self.tainted = True
+    def toString(self):
+        ret += "Identifier\n"
+        ret += "name: " + repr(self.name) + "\n" 
 
     def tainted(self):
         return self.tainted
@@ -52,8 +53,19 @@ class Indentifier:
 class BinaryExpression:
     # self.left : Expression
     # self.right : Expression
+    #self.operator : ???
     def __init__(self, json):
-        return
+        self.left = getExpression(json['left'])
+        self.right = getExpression(json['right'])
+         
+    def __str__(self):
+        return self.left + "operator" + self.right
+
+    def toString(self):
+        ret += "Binary Expression\n"
+        ret += "left: " + repr(self.left) + "\n"
+        ret += "right" + repr(self.right) + "\n"
+        return ret 
 
     def tainted(self):
         return (self.right.tainted() or self.left.tainted())
@@ -62,8 +74,20 @@ class CallExpression:
     # self.func : Expression
     # self.args : list(Expression)
     def __init__(self, json):
-        return
+        self.func = getExpression(json['func'])
+        for expr in json['args']:
+            self.args += [getStatement(args)]
 
+    def __str__(self, json):
+        return self.func + "(".join([str(x) for x in self.args]) + ")"
+
+    def toString(self, level=0):
+        ret = " " * level + "Call Expression\n"
+        ret += " " * level + "func: " + repr(self.func) + "\n"
+        for stm in self.statements:
+            ret += stm.toString(level + 2)
+        return ret
+    
     def tainted(self):
         taint = self.func.tainted()
         for arg in self.args:
@@ -76,16 +100,37 @@ class MemberExpression:
     # self.object : Expression
     # self.property : Expression
     def __init__(self, json):
-        return
-
+        self.object = getExpression(json['object'])
+        self.property = getExpression(json['property'])
+    
+    def __str__(self, json):
+        return self.object + "." + self.property
+    
+    def toString(self):
+        ret += "Member Expression:\n"
+        ret += "object: " + repr(self.object) + "\n"
+        ret += "proprety: " + repr(self.property) + "\n"
+        return ret
+    
     def tainted(self):
         return self.obj.tainted() or self.property.tainted()
 
 class AssignmentExpression:
     # self.left : Expression
     # self.right : Expression
+    # operator again? for print reasons only
     def __init__(self, json):
-        return
+        self.left = getExpression(json['left'])
+        self.right = getExpression(json['right'])
+
+    def __str__(self):
+        return self.left + "operator" + self.right
+
+    def toString(self):
+        ret += "Binary Expression\n"
+        ret += "left: " + repr(self.left) + "\n"
+        ret += "right" + repr(self.right) + "\n"
+        return ret
 
     def tainted(self):
         return self.right.tainted()
