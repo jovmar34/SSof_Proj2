@@ -1,4 +1,22 @@
 1. Ter vulnerabilidades (podemos abstrair classse -> future work) DONE
 2. Representar arvore interna (parse dos json internally): DONE
     - construtor recebe json do tipo da classe; meter nos atributos
-3. 
+3. Visitar a arvore (vulns, shared):
+    - vulns = {vuln_name: {sources: [], sinks: [], sanitizer: []}}
+    - shared = {var_id: [vuln]}
+
+    vuln = {name: str, sources: [], sinks: [], sanitizers: []}
+
+1a: 
+    shared : 
+        {"b" ("tainted", source(c), sink(e))}
+
+important to keep track (assignment):
+    - nome da variavel tainted
+    - tainted por que?
+    - is sink?
+
+when reach sink:
+    - ver args; any tainted?
+
+ 

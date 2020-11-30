@@ -31,5 +31,9 @@ def seeAssignment(vulns, tainted, left, right):
 
 def build_tree(vulns, program):
     root = BlockStatement(program)
-    
     print(root.toString())
+    
+    shared = {}
+    stack = []
+
+    root.visit(vulns, shared, stack)

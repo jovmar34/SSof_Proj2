@@ -35,8 +35,8 @@ class Literal:
     def __repr__(self):
         return "Literal"
 
-    def tainted(self):
-        return self.tainted
+    def getVulns(self, vulns, shared):
+        return []
 
 class Identifier:
     # self.name = string
@@ -50,8 +50,19 @@ class Identifier:
         ret = "Identifier\n"
         ret += "name: " + repr(self.name) + "\n" 
 
-    def tainted(self):
-        return self.tainted
+    def getVulns(self, vulns, shared):
+        my_vulns = []
+        for vuln in vulns:
+            if self.name in vulns[vuln]['sources']:
+                my_vulns += [{"vuln" : vuln, "source": self.name}]
+        return my_vulns
+
+    def getSinks(self, vulns, shared):
+        my_sinks = []
+        for vuln in vulns:
+            if self.name in vulns[vuln]['sinks']:
+                my_sinks += [{"vuln" : vuln, "sink": self.name}]
+        return my_sinks
 
 class BinaryExpression:
     # self.left : Expression
@@ -64,6 +75,9 @@ class BinaryExpression:
     def __repr__(self):
         return "Binary<left: " + repr(self.left) + "; right: " + repr(self.right) + ">"
 
+    def visit(self, vulns, shared, stack):
+        return
+    
     def tainted(self):
         return (self.right.tainted() or self.left.tainted())
 
@@ -78,6 +92,22 @@ class CallExpression:
 
     def __repr__(self):
         return "Call<func: " + repr(self.func) + "; args: " + repr(self.args) + ">"
+
+    def visit(self, vulns, shared, stack):
+        sinks = self.func.getSinks(vulns, shared)
+        print(sinks)
+
+        return
+    
+    def getVulns(self, vulns, shared):
+        ret = {}
+
+        sinks = self.func.getSinks(vulns, shared)
+
+        source = self.func.getVulns(vulns, shared)
+
+        return 
+
 
     def tainted(self):
         taint = self.func.tainted()
@@ -97,6 +127,9 @@ class MemberExpression:
     def __repr__(self):
         return "Member<object: " + repr(self.object) + "; property: " + repr(self.property) + ">" 
 
+    def visit(self, vulns, shared, stack):
+        return
+
     def tainted(self):
         return self.obj.tainted() or self.property.tainted()
 
@@ -111,6 +144,15 @@ class AssignmentExpression:
     def __repr__(self):
         return "Assignement<left: " + repr(self.left) + "; right: " + repr(self.right) + ">" 
 
+    def visit(self, vulns, shared, stack):
+        left_sink = self.left.getSinks(vulns, shared)
+        #print(left_sink)
+        
+        right_vuln = self.right.getVulns(vulns, shared)
+        print(right_vuln)
+
+        return
+    
     def tainted(self):
         return self.right.tainted()
 
@@ -128,7 +170,9 @@ class ExpressionStatement:
         ret += " " * level + "expression: " + repr(self.expression) + "\n"
         return ret
 
-
+    def visit(self, vulns, shared, stack):
+        self.expression.visit(vulns, shared, stack)
+        return
 
     def tainted(self):
         return self.expr.tainted()
@@ -163,6 +207,8 @@ class IfStatement:
         
         return ret
 
+    def visit(self, vulns, shared, stack):
+        return
 
     def tainted(self):
         return self.test.tainted()
@@ -184,6 +230,9 @@ class WhileStatement:
         ret += " " * level + "body:\n" + self.body.toString(level + 2) + "\n"
         return ret
 
+    def visit(self, vulns, shared, stack):
+        return
+
     def tainted(self):
         return self.test.tainted()
 
@@ -204,6 +253,11 @@ class BlockStatement:
             ret += stm.toString(level + 2)
         ret += " " * level + "}"
         return ret
+
+    def visit(self, vulns, shared, stack):
+        for stm in self.statements:
+            stm.visit(vulns, shared, stack)
+        return
 
     def tainted(self):
         taint = False
