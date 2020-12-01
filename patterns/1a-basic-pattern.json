@@ -4,5 +4,11 @@
         "sources": ["c"],
         "sanitizers": [],
         "sinks": ["d", "e"]
+    },
+    {
+        "vulnerability": "lol",
+        "sources": ["c"],
+        "sanitizers": [],
+        "sinks": ["b"]
     }
 ]

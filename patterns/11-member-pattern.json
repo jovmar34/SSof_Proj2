@@ -1,0 +1,8 @@
+[
+    {
+        "vulnerability": "tainted",
+        "sources": ["document.url"],
+        "sanitizers": [],
+        "sinks": ["document.innerHTML"]
+    }
+]

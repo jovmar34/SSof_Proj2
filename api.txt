@@ -19,4 +19,8 @@ important to keep track (assignment):
 when reach sink:
     - ver args; any tainted?
 
- 
+TODO:
+    - sink output format
+    - sanitizers
+    - obj has a tainted property
+    

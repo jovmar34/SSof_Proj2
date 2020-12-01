@@ -1,3 +1,5 @@
+import re
+
 types = {"vulnerability": 0, "sinks": 1, "sanitizers": 2}
 
 def getExpression(json_expression):
@@ -27,6 +29,8 @@ def getStatement(json_statement):
     elif stm_type == "BlockStatement":
         return BlockStatement(json_statement)
 
+# TODO: doesn't work for a = document; sink = a.source
+
 class Literal:
     # no attribute
     def __init__(self, json):
@@ -50,21 +54,27 @@ class Identifier:
         ret = "Identifier\n"
         ret += "name: " + repr(self.name) + "\n" 
 
-    def visit(self, vulns, shared, stack):
-        ret = []
-        if self.name in vulns:
-            ret = [self.name]
-        elif self.name in shared:
-            ret = shared[self.name]
-        return ret
+    # a = document [^document[|\..*]]
+    # b = a.url (document.url)
 
-    def sinks(self, vulns, info):
+    def visit(self, vulns, shared, stack):
+        if self.name in shared:
+            return shared[self.name]
+        else:
+            for vuln in vulns:
+                if (re.search(self.name, vuln)):
+                    return [self.name]
+        return []
+
+    def sinks(self, vulns, shared, info):
         sinks = []
         for id in info:
             id_vulns = vulns[id]
+            #vuln = (name, sources, sanitizers, sinks)
             for vuln in id_vulns:
                 if self.name in vuln[types["sinks"]]:
-                    sinks += [(vuln[types["vulnerability"]], id, self.name)]
+                    # (name, source, sink, sanitizer)
+                    sinks += [(vuln[0], id, self.name, None)]
         return sinks
 
     def getName(self):
@@ -84,9 +94,6 @@ class BinaryExpression:
     def visit(self, vulns, shared, stack):
         return
     
-    def tainted(self):
-        return (self.right.tainted() or self.left.tainted())
-
 class CallExpression:
     # self.func : Expression
     # self.args : list(Expression)
@@ -107,17 +114,11 @@ class CallExpression:
             args_sources += arg.visit(vulns, shared, stack)
 
         my_sinks = self.func.sinks(vulns, args_sources)
+        
         if len(my_sinks) > 0:
             print("SINK!!!", my_sinks)
         
-        return func_source
-
-    def tainted(self):
-        taint = self.func.tainted()
-        for arg in self.args:
-            taint  = (taint or arg.tainted())
-
-        return taint
+        return func_source + args_sources
 
 class MemberExpression:
     # document.url
@@ -131,10 +132,50 @@ class MemberExpression:
         return "Member<object: " + repr(self.object) + "; property: " + repr(self.property) + ">" 
 
     def visit(self, vulns, shared, stack):
-        return
+        names = [self.getName()]
 
-    def tainted(self):
-        return self.obj.tainted() or self.property.tainted()
+        for prefix in shared[self.object.getName()]:
+            names += [prefix + "." + self.property.getName()]
+
+        print(names)
+
+        for name in names:
+            if name in shared:
+                return shared[name]
+            elif name in vulns:
+                return [name]
+        return []
+
+    def sinks(self, vulns, shared, info):
+        names = [self.getName()]
+
+        for prefix in shared[self.object.getName()]:
+            names += [prefix + "." + self.property.getName()]
+
+        print(names)
+
+        sinks = []
+        
+        for id in info:
+            id_vulns = vulns[id]
+            #vuln = (name, sources, sanitizers, sinks)
+            for vuln in id_vulns:
+                for name in names:
+                    if name in vuln[types["sinks"]]:
+                        # (name, source, sink, sanitizer)
+                        sinks += [(vuln[0], id, name, None)]
+        
+        return sinks
+
+    def getName(self):
+        return self.object.getName() + "." + self.property.getName()
+
+    # XXX
+    # c -> func, safe -> func
+    # c = safe
+    # sink(c())
+    # sink(b)
+    # XXX
 
 class AssignmentExpression:
     # self.left : Expression
@@ -150,18 +191,14 @@ class AssignmentExpression:
     def visit(self, vulns, shared, stack):
         right_info = self.right.visit(vulns, shared, stack)
 
-        sinks = self.left.sinks(vulns, right_info)
-        if (len(sinks) > 0):
-            print(sinks)
-
         shared[self.left.getName()] = right_info
+
+        sinks = self.left.sinks(vulns, shared, right_info)
+        if (len(sinks) > 0):
+            print("SINK!!!", sinks)
 
         return right_info
     
-    def tainted(self):
-        return self.right.tainted()
-
-
 class ExpressionStatement:
     # self.expression : Expression
     def __init__(self, json):
@@ -178,9 +215,6 @@ class ExpressionStatement:
     def visit(self, vulns, shared, stack):
         self.expression.visit(vulns, shared, stack)
         return
-
-    def tainted(self):
-        return self.expr.tainted()
 
 class IfStatement:
     # self.test : Expression
@@ -215,9 +249,6 @@ class IfStatement:
     def visit(self, vulns, shared, stack):
         return
 
-    def tainted(self):
-        return self.test.tainted()
-
 class WhileStatement:
     # self.test : Expression
     # self.body : Statement
@@ -237,9 +268,6 @@ class WhileStatement:
 
     def visit(self, vulns, shared, stack):
         return
-
-    def tainted(self):
-        return self.test.tainted()
 
 class BlockStatement:
     # self.statements : list(Statement)
@@ -263,9 +291,3 @@ class BlockStatement:
         for stm in self.statements:
             stm.visit(vulns, shared, stack)
         return
-
-    def tainted(self):
-        taint = False
-        for statement in self.statements:
-            taint = taint or statement.tainted()
-        return taint

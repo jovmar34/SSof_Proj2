@@ -15,6 +15,8 @@ with open(sys.argv[2]) as patterns_f:
         for source in vuln['sources']:
             vulns[source] += [(vuln['vulnerability'], vuln['sinks'], vuln['sanitizers'])]
 
+#print(vulns)
+
 with open(sys.argv[1]) as slices_f:
     slice_json = json.load(slices_f)
     ast_traverse.build_tree(vulns, slice_json)

@@ -3,7 +3,7 @@ from collections import defaultdict
 
 def build_tree(vulns, program):
     root = BlockStatement(program)
-    print(root.toString())
+    #print(root.toString())
     
     shared = defaultdict(list)
     stack = []
