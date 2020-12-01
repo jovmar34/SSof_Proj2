@@ -62,7 +62,7 @@ class Identifier:
             return shared[self.name]
         else:
             for vuln in vulns:
-                if (re.search(self.name, vuln)):
+                if (re.search(f"^{self.name}(\.[a-zA-Z][a-zA-Z0-9]*)*$", vuln)):
                     return [self.name]
         return []
 
@@ -137,13 +137,13 @@ class MemberExpression:
         for prefix in shared[self.object.getName()]:
             names += [prefix + "." + self.property.getName()]
 
-        print(names)
-
         for name in names:
             if name in shared:
                 return shared[name]
-            elif name in vulns:
-                return [name]
+            else:
+                for vuln in vulns:
+                    if (re.search(f"^{name}(\.[a-zA-Z][a-zA-Z0-9]*)*$", vuln)):
+                        return [name]
         return []
 
     def sinks(self, vulns, shared, info):
@@ -151,8 +151,6 @@ class MemberExpression:
 
         for prefix in shared[self.object.getName()]:
             names += [prefix + "." + self.property.getName()]
-
-        print(names)
 
         sinks = []
         
@@ -192,6 +190,8 @@ class AssignmentExpression:
         right_info = self.right.visit(vulns, shared, stack)
 
         shared[self.left.getName()] = right_info
+
+        print(shared)
 
         sinks = self.left.sinks(vulns, shared, right_info)
         if (len(sinks) > 0):
