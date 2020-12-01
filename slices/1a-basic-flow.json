@@ -48,6 +48,10 @@
           {
             "type": "Identifier",
             "name": "a"
+          },
+          {
+            "type": "Identifier",
+            "name": "b"
           }
         ]
       }

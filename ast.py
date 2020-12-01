@@ -1,4 +1,4 @@
-types = {"safe": 0, "tainted": 1, "solved": 2}
+types = {"vulnerability": 0, "sinks": 1, "sanitizers": 2}
 
 def getExpression(json_expression):
     expr_type = json_expression['type']
@@ -35,7 +35,7 @@ class Literal:
     def __repr__(self):
         return "Literal"
 
-    def getVulns(self, vulns, shared):
+    def visit(self, vulns, shared, stack):
         return []
 
 class Identifier:
@@ -50,19 +50,25 @@ class Identifier:
         ret = "Identifier\n"
         ret += "name: " + repr(self.name) + "\n" 
 
-    def getVulns(self, vulns, shared):
-        my_vulns = []
-        for vuln in vulns:
-            if self.name in vulns[vuln]['sources']:
-                my_vulns += [{"vuln" : vuln, "source": self.name}]
-        return my_vulns
+    def visit(self, vulns, shared, stack):
+        ret = []
+        if self.name in vulns:
+            ret = [self.name]
+        elif self.name in shared:
+            ret = shared[self.name]
+        return ret
 
-    def getSinks(self, vulns, shared):
-        my_sinks = []
-        for vuln in vulns:
-            if self.name in vulns[vuln]['sinks']:
-                my_sinks += [{"vuln" : vuln, "sink": self.name}]
-        return my_sinks
+    def sinks(self, vulns, info):
+        sinks = []
+        for id in info:
+            id_vulns = vulns[id]
+            for vuln in id_vulns:
+                if self.name in vuln[types["sinks"]]:
+                    sinks += [(vuln[types["vulnerability"]], id, self.name)]
+        return sinks
+
+    def getName(self):
+        return self.name
 
 class BinaryExpression:
     # self.left : Expression
@@ -94,20 +100,17 @@ class CallExpression:
         return "Call<func: " + repr(self.func) + "; args: " + repr(self.args) + ">"
 
     def visit(self, vulns, shared, stack):
-        sinks = self.func.getSinks(vulns, shared)
-        print(sinks)
+        func_source = self.func.visit(vulns, shared, stack)
 
-        return
-    
-    def getVulns(self, vulns, shared):
-        ret = {}
+        args_sources = []
+        for arg in self.args:
+            args_sources += arg.visit(vulns, shared, stack)
 
-        sinks = self.func.getSinks(vulns, shared)
-
-        source = self.func.getVulns(vulns, shared)
-
-        return 
-
+        my_sinks = self.func.sinks(vulns, args_sources)
+        if len(my_sinks) > 0:
+            print("SINK!!!", my_sinks)
+        
+        return func_source
 
     def tainted(self):
         taint = self.func.tainted()
@@ -145,13 +148,15 @@ class AssignmentExpression:
         return "Assignement<left: " + repr(self.left) + "; right: " + repr(self.right) + ">" 
 
     def visit(self, vulns, shared, stack):
-        left_sink = self.left.getSinks(vulns, shared)
-        #print(left_sink)
-        
-        right_vuln = self.right.getVulns(vulns, shared)
-        print(right_vuln)
+        right_info = self.right.visit(vulns, shared, stack)
 
-        return
+        sinks = self.left.sinks(vulns, right_info)
+        if (len(sinks) > 0):
+            print(sinks)
+
+        shared[self.left.getName()] = right_info
+
+        return right_info
     
     def tainted(self):
         return self.right.tainted()
