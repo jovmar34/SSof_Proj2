@@ -1,0 +1,82 @@
+{
+    "type": "Program",
+    "body": [
+      {
+        "type": "ExpressionStatement",
+        "expression": {
+          "type": "AssignmentExpression",
+          "operator": "=",
+          "left": {
+            "type": "Identifier",
+            "name": "a"
+          },
+          "right": {
+            "type": "Literal",
+            "value": "ola",
+            "raw": "\"ola\""
+          }
+        }
+      },
+      {
+        "type": "WhileStatement",
+        "test": {
+          "type": "MemberExpression",
+          "computed": false,
+          "object": {
+            "type": "Identifier",
+            "name": "document"
+          },
+          "property": {
+            "type": "Identifier",
+            "name": "url"
+          }
+        },
+        "body": {
+          "type": "BlockStatement",
+          "body": [
+            {
+              "type": "ExpressionStatement",
+              "expression": {
+                "type": "AssignmentExpression",
+                "operator": "=",
+                "left": {
+                  "type": "Identifier",
+                  "name": "a"
+                },
+                "right": {
+                  "type": "Literal",
+                  "value": "ola",
+                  "raw": "\"ola\""
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "ExpressionStatement",
+        "expression": {
+          "type": "CallExpression",
+          "callee": {
+            "type": "MemberExpression",
+            "computed": false,
+            "object": {
+              "type": "Identifier",
+              "name": "document"
+            },
+            "property": {
+              "type": "Identifier",
+              "name": "innerHTML"
+            }
+          },
+          "arguments": [
+            {
+              "type": "Identifier",
+              "name": "a"
+            }
+          ]
+        }
+      }
+    ],
+    "sourceType": "script"
+  }

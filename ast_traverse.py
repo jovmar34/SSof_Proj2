@@ -8,4 +8,6 @@ def build_tree(vulns, program):
     shared = defaultdict(list)
     stack = []
 
+    print("[")
     root.visit(vulns, shared, stack)
+    print("]")

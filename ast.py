@@ -1,8 +1,23 @@
 import re
 
+def print_sink(sinks):
+    for sink in sinks:
+        ret = '  {\n    "vulnerability": "' + sink[0] + '",\n'
+        ret += '    "source": "' + sink[1] + '",\n'
+        ret += '    "sink": "' + sink[2] + '"'
+        if (sink[3] != None):
+            ret += ',\n    "sanitizer": "' + sink[3] + '"'
+        ret += '\n  },'
+        print(ret)
+
+def combine_stack(stack):
+    ret = []
+    for level in stack:
+        ret += level
+    return ret
+
 def sanitize(vulns, shared, source, name):
     ret = []
-    print(vulns)
     for info in source:
         change = False
         for vuln in vulns[info[0]]:
@@ -81,7 +96,6 @@ class Identifier:
 
     def sinks(self, vulns, shared, info):
         sinks = []
-        print(info)
         for id in info:
             id_vulns = vulns[id[0]]
             #vuln = (name, sources, sinks, sanitizers)
@@ -134,7 +148,7 @@ class CallExpression:
         my_sinks = self.func.sinks(vulns, shared, args_sources)
         
         if len(my_sinks) > 0:
-            print("SINK!!!", my_sinks)
+            print_sink(my_sinks)
         
         return func_source + args_sources
 
@@ -206,14 +220,13 @@ class AssignmentExpression:
 
     def visit(self, vulns, shared, stack):
         right_info = self.right.visit(vulns, shared, stack)
+        right_info += combine_stack(stack)
 
         shared[self.left.getName()] = right_info
 
-        print(shared)
-
         sinks = self.left.sinks(vulns, shared, right_info)
         if (len(sinks) > 0):
-            print("SINK!!!", sinks)
+            print_sink(sinks)
 
         return right_info
     
@@ -241,7 +254,6 @@ class IfStatement:
     # does not support directly if else
     def __init__(self, json):
         self.test = getExpression(json['test'])
-
         self.then = getStatement(json['consequent'])
 
         if json['alternate'] == None:
@@ -265,6 +277,22 @@ class IfStatement:
         return ret
 
     def visit(self, vulns, shared, stack):
+        aux_test_source = self.test.visit(vulns, shared, stack)
+        test_source = []
+
+        for vuln in aux_test_source:
+            if vuln[0] in vulns:
+                test_source += [vuln]
+
+        stack = [test_source] + stack
+
+        self.then.visit(vulns, shared, stack)
+
+        if (self.alternative != None):
+            self.alternative.visit(vulns, shared, stack)
+
+        stack = stack[1:]
+
         return
 
 class WhileStatement:
@@ -285,6 +313,19 @@ class WhileStatement:
         return ret
 
     def visit(self, vulns, shared, stack):
+        aux_test_source = self.test.visit(vulns, shared, stack)
+        test_source = []
+
+        for vuln in aux_test_source:
+            if vuln[0] in vulns:
+                test_source += [vuln]
+
+        stack = [test_source] + stack
+
+        self.body.visit(vulns, shared, stack)
+
+        stack = stack[1:]
+
         return
 
 class BlockStatement:

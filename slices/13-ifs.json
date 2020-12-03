@@ -1,0 +1,69 @@
+{
+    "type": "Program",
+    "body": [
+      {
+        "type": "IfStatement",
+        "test": {
+          "type": "MemberExpression",
+          "computed": false,
+          "object": {
+            "type": "Identifier",
+            "name": "document"
+          },
+          "property": {
+            "type": "Identifier",
+            "name": "url"
+          }
+        },
+        "consequent": {
+          "type": "BlockStatement",
+          "body": [
+            {
+              "type": "ExpressionStatement",
+              "expression": {
+                "type": "CallExpression",
+                "callee": {
+                  "type": "MemberExpression",
+                  "computed": false,
+                  "object": {
+                    "type": "Identifier",
+                    "name": "document"
+                  },
+                  "property": {
+                    "type": "Identifier",
+                    "name": "innerHTML"
+                  }
+                },
+                "arguments": []
+              }
+            }
+          ]
+        },
+        "alternate": {
+          "type": "BlockStatement",
+          "body": [
+            {
+              "type": "ExpressionStatement",
+              "expression": {
+                "type": "CallExpression",
+                "callee": {
+                  "type": "MemberExpression",
+                  "computed": false,
+                  "object": {
+                    "type": "Identifier",
+                    "name": "document"
+                  },
+                  "property": {
+                    "type": "Identifier",
+                    "name": "innerHTML"
+                  }
+                },
+                "arguments": []
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "sourceType": "script"
+  }

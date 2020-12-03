@@ -2,7 +2,7 @@
     {
         "vulnerability": "tainted",
         "sources": ["document.url"],
-        "sanitizers": [],
+        "sanitizers": ["e"],
         "sinks": ["document.innerHTML"]
     }
 ]
