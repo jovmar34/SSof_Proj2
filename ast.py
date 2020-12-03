@@ -1,5 +1,18 @@
 import re
 
+def sanitize(vulns, shared, source, name):
+    ret = []
+    print(vulns)
+    for info in source:
+        change = False
+        for vuln in vulns[info[0]]:
+            if name in vuln[types["sanitizers"]]:
+                ret += [(info[0], name)]
+                change = True 
+        if not change:
+            ret += [info]
+    return ret
+
 types = {"vulnerability": 0, "sinks": 1, "sanitizers": 2}
 
 def getExpression(json_expression):
@@ -63,18 +76,19 @@ class Identifier:
         else:
             for vuln in vulns:
                 if (re.search(f"^{self.name}(\.[a-zA-Z][a-zA-Z0-9]*)*$", vuln)):
-                    return [self.name]
+                    return [(self.name, None)]
         return []
 
     def sinks(self, vulns, shared, info):
         sinks = []
+        print(info)
         for id in info:
-            id_vulns = vulns[id]
-            #vuln = (name, sources, sanitizers, sinks)
+            id_vulns = vulns[id[0]]
+            #vuln = (name, sources, sinks, sanitizers)
             for vuln in id_vulns:
                 if self.name in vuln[types["sinks"]]:
                     # (name, source, sink, sanitizer)
-                    sinks += [(vuln[0], id, self.name, None)]
+                    sinks += [(vuln[0], id[0], self.name, id[1])]
         return sinks
 
     def getName(self):
@@ -92,7 +106,9 @@ class BinaryExpression:
         return "Binary<left: " + repr(self.left) + "; right: " + repr(self.right) + ">"
 
     def visit(self, vulns, shared, stack):
-        return
+        left_sources = self.left.visit(vulns, shared, stack)
+        right_sources = self.right.visit(vulns, shared, stack)
+        return left_sources + right_sources
     
 class CallExpression:
     # self.func : Expression
@@ -111,9 +127,11 @@ class CallExpression:
 
         args_sources = []
         for arg in self.args:
-            args_sources += arg.visit(vulns, shared, stack)
+            source = arg.visit(vulns, shared, stack)
+            source = sanitize(vulns, shared, source, self.func.getName())
+            args_sources += source
 
-        my_sinks = self.func.sinks(vulns, args_sources)
+        my_sinks = self.func.sinks(vulns, shared, args_sources)
         
         if len(my_sinks) > 0:
             print("SINK!!!", my_sinks)
@@ -143,7 +161,7 @@ class MemberExpression:
             else:
                 for vuln in vulns:
                     if (re.search(f"^{name}(\.[a-zA-Z][a-zA-Z0-9]*)*$", vuln)):
-                        return [name]
+                        return [(name, None)]
         return []
 
     def sinks(self, vulns, shared, info):
@@ -155,13 +173,13 @@ class MemberExpression:
         sinks = []
         
         for id in info:
-            id_vulns = vulns[id]
+            id_vulns = vulns[id[0]]
             #vuln = (name, sources, sanitizers, sinks)
             for vuln in id_vulns:
                 for name in names:
                     if name in vuln[types["sinks"]]:
                         # (name, source, sink, sanitizer)
-                        sinks += [(vuln[0], id, name, None)]
+                        sinks += [(vuln[0], id[0], name, id[1])]
         
         return sinks
 

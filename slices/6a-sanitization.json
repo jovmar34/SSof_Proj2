@@ -29,6 +29,31 @@
     {
       "type": "ExpressionStatement",
       "expression": {
+        "type": "AssignmentExpression",
+        "operator": "=",
+        "left": {
+          "type": "Identifier",
+          "name": "f"
+        },
+        "right": {
+          "type": "CallExpression",
+          "callee": {
+            "type": "Identifier",
+            "name": "b"
+          },
+          "arguments": [
+            {
+              "type": "Literal",
+              "value": "ola",
+              "raw": "\"ola\""
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "ExpressionStatement",
+      "expression": {
         "type": "CallExpression",
         "callee": {
           "type": "Identifier",
@@ -77,7 +102,11 @@
         "arguments": [
           {
             "type": "Identifier",
-            "name": "a"
+            "name": "d"
+          },
+          {
+            "type": "Identifier",
+            "name": "f"
           }
         ]
       }

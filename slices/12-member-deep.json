@@ -11,26 +11,11 @@
           "name": "a"
         },
         "right": {
-          "type": "Identifier",
-          "name": "document"
-        }
-      }
-    },
-    {
-      "type": "ExpressionStatement",
-      "expression": {
-        "type": "AssignmentExpression",
-        "operator": "=",
-        "left": {
-          "type": "Identifier",
-          "name": "b"
-        },
-        "right": {
           "type": "MemberExpression",
           "computed": false,
           "object": {
             "type": "Identifier",
-            "name": "a"
+            "name": "document"
           },
           "property": {
             "type": "Identifier",
@@ -45,23 +30,15 @@
         "type": "AssignmentExpression",
         "operator": "=",
         "left": {
-          "type": "MemberExpression",
-          "computed": false,
-          "object": {
-            "type": "Identifier",
-            "name": "document"
-          },
-          "property": {
-            "type": "Identifier",
-            "name": "innerHTML"
-          }
+          "type": "Identifier",
+          "name": "sink"
         },
         "right": {
           "type": "MemberExpression",
           "computed": false,
           "object": {
             "type": "Identifier",
-            "name": "b"
+            "name": "a"
           },
           "property": {
             "type": "Identifier",

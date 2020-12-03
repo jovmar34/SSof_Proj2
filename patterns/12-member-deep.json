@@ -3,6 +3,6 @@
         "vulnerability": "tainted",
         "sources": ["document.url.name"],
         "sanitizers": [],
-        "sinks": ["document.innerHTML"]
+        "sinks": ["sink"]
     }
 ]
