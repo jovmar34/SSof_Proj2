@@ -2,10 +2,10 @@
   {
     "vulnerability": "Source Input",
     "source": [
-      "document.URL"
+      "source"
     ],
     "sink": [
-      "document.innerHTML"
+      "trap"
     ],
     "sanitizer": []
   }

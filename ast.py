@@ -111,7 +111,6 @@ class Identifier:
     def sinks(self, vulns, shared, info):
         sinks = []
         for id in info:
-            print(id)
             id_vulns = vulns[id[0]]
             #vuln = (name, sources, sinks, sanitizers)
             for vuln in id_vulns:
