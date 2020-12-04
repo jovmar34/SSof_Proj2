@@ -180,22 +180,30 @@ class MemberExpression:
     def visit(self, vulns, shared, stack, out_sinks): 
         names = [self.getName()]
 
-        for prefix in shared[self.object.getName()]:
-            names += [prefix + "." + self.property.getName()]
+        obj_info = self.object.visit(vulns, shared, stack, out_sinks) # taints in object
+
+        for prefix in obj_info:
+            names += [prefix[0] + "." + self.property.getName()]
 
         for name in names:
             for level in shared:
                 if name in level:
-                    return level[name]
+                    return level[name] + [obj_info]
             for vuln in vulns:
                 if (re.search(f"^{name}(\.[a-zA-Z][a-zA-Z0-9]*)*$", vuln)):
-                    return [(name, None)]
-        return []
+                    return [(name, None)] + [obj_info]
+        return obj_info
 
     def sinks(self, vulns, shared, info):
         names = [self.getName()]
 
-        for prefix in shared[self.object.getName()]:
+        share = []
+        for level in shared:
+            if self.object.getName() in level:
+                share = level[self.object.getName()]
+                break
+
+        for prefix in share:
             names += [prefix + "." + self.property.getName()]
 
         sinks = []
