@@ -15,8 +15,6 @@ with open(sys.argv[2]) as patterns_f:
         for source in vuln['sources']:
             vulns[source] += [(vuln['vulnerability'], vuln['sinks'], vuln['sanitizers'])]
 
-#print(vulns)
-
 output_file_name = sys.argv[1].split(".")[0].split("/")[-1] + ".output.json"
 print(output_file_name)
 

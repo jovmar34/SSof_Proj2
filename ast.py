@@ -1,5 +1,5 @@
 import re
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 
 def merge_shared(context, shared, replace=False):
     for var in context:
@@ -111,6 +111,7 @@ class Identifier:
     def sinks(self, vulns, shared, info):
         sinks = []
         for id in info:
+            print(id)
             id_vulns = vulns[id[0]]
             #vuln = (name, sources, sinks, sanitizers)
             for vuln in id_vulns:
@@ -136,8 +137,9 @@ class BinaryExpression:
     def visit(self, vulns, shared, stack, out_sinks):
         left_sources = self.left.visit(vulns, shared, stack, out_sinks)
         right_sources = self.right.visit(vulns, shared, stack, out_sinks)
-        return left_sources + right_sources
-    
+        ret = list(OrderedDict.fromkeys(left_sources + right_sources))
+        return ret
+
 class CallExpression:
     # self.func : Expression
     # self.args : list(Expression)
@@ -159,6 +161,7 @@ class CallExpression:
             source = sanitize(vulns, shared, source, self.func.getName())
             args_sources += source
 
+        args_sources = list(OrderedDict.fromkeys(args_sources))
         my_sinks = self.func.sinks(vulns, shared, args_sources)
         
         if len(my_sinks) > 0:
@@ -188,10 +191,10 @@ class MemberExpression:
         for name in names:
             for level in shared:
                 if name in level:
-                    return level[name] + [obj_info]
+                    return level[name] + obj_info
             for vuln in vulns:
                 if (re.search(f"^{name}(\.[a-zA-Z][a-zA-Z0-9]*)*$", vuln)):
-                    return [(name, None)] + [obj_info]
+                    return [(name, None)] + obj_info
         return obj_info
 
     def sinks(self, vulns, shared, info):
@@ -359,11 +362,11 @@ class WhileStatement:
 
         self.body.visit(vulns, shared, stack, out_sinks)
 
-        body_context, shared = shared[0], shared[1:]
+        body1_context, shared = shared[0], shared[1:]
 
-        merge_shared(body_context, shared)
+        merge_shared(body1_context, shared)
 
-        self.body.visit(vulns, shared, stack, out_sinks)
+        self.body.visit(vulns, [defaultdict(list)] + shared, stack, out_sinks)
 
         stack = stack[1:]
 

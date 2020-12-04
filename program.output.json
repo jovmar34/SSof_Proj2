@@ -1,32 +1,8 @@
 [
   {
-    "vulnerability": "Test",
+    "vulnerability": "Source Input",
     "source": [
-      "sourceX"
-    ],
-    "sink": [
-      "document.innerHTML"
-    ],
-    "sanitizer": [
-      "sanitizerX"
-    ]
-  },
-  {
-    "vulnerability": "Test",
-    "source": [
-      "sourceX"
-    ],
-    "sink": [
-      "document.innerHTML"
-    ],
-    "sanitizer": [
-      "sanitizerX"
-    ]
-  },
-  {
-    "vulnerability": "Test",
-    "source": [
-      "sourceY"
+      "document.URL"
     ],
     "sink": [
       "document.innerHTML"
