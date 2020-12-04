@@ -20,7 +20,6 @@ when reach sink:
     - ver args; any tainted?
 
 TODO:
-    - 
-    - sink output format
-    - sanitizers
+    - accum
+    - calls dentro de members
     

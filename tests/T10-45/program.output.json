@@ -1,0 +1,24 @@
+[
+  {
+    "vulnerability": "Source Input",
+    "sources": [
+      "readline"
+    ],
+    "sanitizers": [
+      "escape"
+    ],
+    "sinks": [
+      "exec"
+    ]
+  },
+  {
+    "vulnerability": "Source Input",
+    "sources": [
+      "readline"
+    ],
+    "sanitizers": [],
+    "sinks": [
+      "exec"
+    ]
+  }
+]

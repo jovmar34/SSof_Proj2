@@ -17,6 +17,9 @@ with open(sys.argv[2]) as patterns_f:
 
 #print(vulns)
 
+output_file_name = sys.argv[1].split(".")[0].split("/")[-1] + ".output.json"
+print(output_file_name)
+
 with open(sys.argv[1]) as slices_f:
     slice_json = json.load(slices_f)
-    ast_traverse.build_tree(vulns, slice_json)
+    ast_traverse.build_tree(vulns, slice_json, output_file_name)

@@ -1,9 +1,7 @@
-a = "ola"
+a = 'ola';
 
-while (document.url) {
+while(test) {
+    sink = a;
     a = source();
 }
 
-sink(a);
-
-// tip: implicit flows can come from any of the nested conditions/loops

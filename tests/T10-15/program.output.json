@@ -1,0 +1,13 @@
+[
+  {
+    "vulnerability": "Source Input",
+    "sources": [
+      "input",
+      "source"
+    ],
+    "sanitizers": [],
+    "sinks": [
+      "trap"
+    ]
+  }
+]

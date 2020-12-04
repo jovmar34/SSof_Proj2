@@ -4,16 +4,8 @@
       {
         "type": "IfStatement",
         "test": {
-          "type": "MemberExpression",
-          "computed": false,
-          "object": {
-            "type": "Identifier",
-            "name": "document"
-          },
-          "property": {
-            "type": "Identifier",
-            "name": "url"
-          }
+          "type": "Identifier",
+          "name": "test"
         },
         "consequent": {
           "type": "BlockStatement",
@@ -21,20 +13,20 @@
             {
               "type": "ExpressionStatement",
               "expression": {
-                "type": "CallExpression",
-                "callee": {
-                  "type": "MemberExpression",
-                  "computed": false,
-                  "object": {
-                    "type": "Identifier",
-                    "name": "document"
-                  },
-                  "property": {
-                    "type": "Identifier",
-                    "name": "innerHTML"
-                  }
+                "type": "AssignmentExpression",
+                "operator": "=",
+                "left": {
+                  "type": "Identifier",
+                  "name": "link"
                 },
-                "arguments": []
+                "right": {
+                  "type": "CallExpression",
+                  "callee": {
+                    "type": "Identifier",
+                    "name": "readline"
+                  },
+                  "arguments": []
+                }
               }
             }
           ]
@@ -45,21 +37,46 @@
             {
               "type": "ExpressionStatement",
               "expression": {
-                "type": "CallExpression",
-                "callee": {
-                  "type": "MemberExpression",
-                  "computed": false,
-                  "object": {
-                    "type": "Identifier",
-                    "name": "document"
-                  },
-                  "property": {
-                    "type": "Identifier",
-                    "name": "innerHTML"
-                  }
+                "type": "AssignmentExpression",
+                "operator": "=",
+                "left": {
+                  "type": "Identifier",
+                  "name": "link"
                 },
-                "arguments": []
+                "right": {
+                  "type": "CallExpression",
+                  "callee": {
+                    "type": "Identifier",
+                    "name": "escape"
+                  },
+                  "arguments": [
+                    {
+                      "type": "CallExpression",
+                      "callee": {
+                        "type": "Identifier",
+                        "name": "readline"
+                      },
+                      "arguments": []
+                    }
+                  ]
+                }
               }
+            }
+          ]
+        }
+      },
+      {
+        "type": "ExpressionStatement",
+        "expression": {
+          "type": "CallExpression",
+          "callee": {
+            "type": "Identifier",
+            "name": "exec"
+          },
+          "arguments": [
+            {
+              "type": "Identifier",
+              "name": "link"
             }
           ]
         }

@@ -1,7 +1,7 @@
 [
     {
         "vulnerability": "tainted",
-        "sources": ["document.url.name"],
+        "sources": ["source"],
         "sanitizers": [],
         "sinks": ["sink"]
     }

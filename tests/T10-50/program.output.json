@@ -1,0 +1,15 @@
+[
+  {
+    "vulnerability": "Source Input",
+    "sources": [
+      "readline",
+      "readbyte"
+    ],
+    "sanitizers": [
+      "escape"
+    ],
+    "sinks": [
+      "document.write"
+    ]
+  }
+]

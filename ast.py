@@ -1,14 +1,28 @@
 import re
+from collections import defaultdict
 
-def print_sink(sinks):
+def merge_shared(context, shared, replace=False):
+    for var in context:
+        if var not in shared[0]:
+            shared[0][var] = context[var]
+            continue
+        if replace:
+            shared[0][var] = context[var]
+        for source in context[var]:
+            if source not in shared[0][var]:
+                shared[0][var] += [source]
+
+def print_sink(sinks, out_sinks):
     for sink in sinks:
-        ret = '  {\n    "vulnerability": "' + sink[0] + '",\n'
-        ret += '    "source": "' + sink[1] + '",\n'
-        ret += '    "sink": "' + sink[2] + '"'
-        if (sink[3] != None):
-            ret += ',\n    "sanitizer": "' + sink[3] + '"'
-        ret += '\n  },'
-        print(ret)
+        ret = {}
+        ret['vulnerability'] = sink[0]
+        ret['source'] = [sink[1]]
+        ret['sink'] = [sink[2]]
+        if (sink[3] == None):
+            ret['sanitizer'] = []
+        else:
+            ret['sanitizer'] = [sink[3]]
+        out_sinks += [ret]
 
 def combine_stack(stack):
     ret = []
@@ -67,7 +81,7 @@ class Literal:
     def __repr__(self):
         return "Literal"
 
-    def visit(self, vulns, shared, stack):
+    def visit(self, vulns, shared, stack, out_sinks):
         return []
 
 class Identifier:
@@ -85,13 +99,13 @@ class Identifier:
     # a = document [^document[|\..*]]
     # b = a.url (document.url)
 
-    def visit(self, vulns, shared, stack):
-        if self.name in shared:
-            return shared[self.name]
-        else:
-            for vuln in vulns:
-                if (re.search(f"^{self.name}(\.[a-zA-Z][a-zA-Z0-9]*)*$", vuln)):
-                    return [(self.name, None)]
+    def visit(self, vulns, shared, stack, out_sinks):
+        for level in shared:
+            if self.name in level:
+                return level[self.name]
+        for vuln in vulns:
+            if (re.search(f"^{self.name}(\.[a-zA-Z][a-zA-Z0-9]*)*$", vuln)):
+                return [(self.name, None)]
         return []
 
     def sinks(self, vulns, shared, info):
@@ -119,9 +133,9 @@ class BinaryExpression:
     def __repr__(self):
         return "Binary<left: " + repr(self.left) + "; right: " + repr(self.right) + ">"
 
-    def visit(self, vulns, shared, stack):
-        left_sources = self.left.visit(vulns, shared, stack)
-        right_sources = self.right.visit(vulns, shared, stack)
+    def visit(self, vulns, shared, stack, out_sinks):
+        left_sources = self.left.visit(vulns, shared, stack, out_sinks)
+        right_sources = self.right.visit(vulns, shared, stack, out_sinks)
         return left_sources + right_sources
     
 class CallExpression:
@@ -136,19 +150,19 @@ class CallExpression:
     def __repr__(self):
         return "Call<func: " + repr(self.func) + "; args: " + repr(self.args) + ">"
 
-    def visit(self, vulns, shared, stack):
-        func_source = self.func.visit(vulns, shared, stack)
+    def visit(self, vulns, shared, stack, out_sinks):
+        func_source = self.func.visit(vulns, shared, stack, out_sinks)
 
         args_sources = []
         for arg in self.args:
-            source = arg.visit(vulns, shared, stack)
+            source = arg.visit(vulns, shared, stack, out_sinks)
             source = sanitize(vulns, shared, source, self.func.getName())
             args_sources += source
 
         my_sinks = self.func.sinks(vulns, shared, args_sources)
         
         if len(my_sinks) > 0:
-            print_sink(my_sinks)
+            print_sink(my_sinks, out_sinks)
         
         return func_source + args_sources
 
@@ -163,19 +177,19 @@ class MemberExpression:
     def __repr__(self):
         return "Member<object: " + repr(self.object) + "; property: " + repr(self.property) + ">" 
 
-    def visit(self, vulns, shared, stack):
+    def visit(self, vulns, shared, stack, out_sinks): 
         names = [self.getName()]
 
         for prefix in shared[self.object.getName()]:
             names += [prefix + "." + self.property.getName()]
 
         for name in names:
-            if name in shared:
-                return shared[name]
-            else:
-                for vuln in vulns:
-                    if (re.search(f"^{name}(\.[a-zA-Z][a-zA-Z0-9]*)*$", vuln)):
-                        return [(name, None)]
+            for level in shared:
+                if name in level:
+                    return level[name]
+            for vuln in vulns:
+                if (re.search(f"^{name}(\.[a-zA-Z][a-zA-Z0-9]*)*$", vuln)):
+                    return [(name, None)]
         return []
 
     def sinks(self, vulns, shared, info):
@@ -218,15 +232,15 @@ class AssignmentExpression:
     def __repr__(self):
         return "Assignement<left: " + repr(self.left) + "; right: " + repr(self.right) + ">" 
 
-    def visit(self, vulns, shared, stack):
-        right_info = self.right.visit(vulns, shared, stack)
+    def visit(self, vulns, shared, stack, out_sinks):
+        right_info = self.right.visit(vulns, shared, stack, out_sinks)
         right_info += combine_stack(stack)
 
-        shared[self.left.getName()] = right_info
+        shared[0][self.left.getName()] = right_info # assignments in highest context stay in this context
 
         sinks = self.left.sinks(vulns, shared, right_info)
         if (len(sinks) > 0):
-            print_sink(sinks)
+            print_sink(sinks, out_sinks)
 
         return right_info
     
@@ -243,8 +257,8 @@ class ExpressionStatement:
         ret += " " * level + "expression: " + repr(self.expression) + "\n"
         return ret
 
-    def visit(self, vulns, shared, stack):
-        self.expression.visit(vulns, shared, stack)
+    def visit(self, vulns, shared, stack, out_sinks):
+        self.expression.visit(vulns, shared, stack, out_sinks)
         return
 
 class IfStatement:
@@ -276,8 +290,8 @@ class IfStatement:
         
         return ret
 
-    def visit(self, vulns, shared, stack):
-        aux_test_source = self.test.visit(vulns, shared, stack)
+    def visit(self, vulns, shared, stack, out_sinks):
+        aux_test_source = self.test.visit(vulns, shared, stack, out_sinks)
         test_source = []
 
         for vuln in aux_test_source:
@@ -286,10 +300,21 @@ class IfStatement:
 
         stack = [test_source] + stack
 
-        self.then.visit(vulns, shared, stack)
+        shared = [defaultdict(list)] + shared
+
+        self.then.visit(vulns, shared, stack, out_sinks)
+
+        then_context, shared = shared[0], shared[1:]
 
         if (self.alternative != None):
-            self.alternative.visit(vulns, shared, stack)
+            shared = [defaultdict(list)] + shared
+            self.alternative.visit(vulns, shared, stack, out_sinks)
+            alt_context, shared = shared[0], shared[1:]
+
+            merge_shared(then_context, shared, True)
+            merge_shared(alt_context, shared)
+        else:
+            merge_shared(then_context, shared)
 
         stack = stack[1:]
 
@@ -312,8 +337,8 @@ class WhileStatement:
         ret += " " * level + "body:\n" + self.body.toString(level + 2) + "\n"
         return ret
 
-    def visit(self, vulns, shared, stack):
-        aux_test_source = self.test.visit(vulns, shared, stack)
+    def visit(self, vulns, shared, stack, out_sinks):
+        aux_test_source = self.test.visit(vulns, shared, stack, out_sinks)
         test_source = []
 
         for vuln in aux_test_source:
@@ -322,7 +347,15 @@ class WhileStatement:
 
         stack = [test_source] + stack
 
-        self.body.visit(vulns, shared, stack)
+        shared = [defaultdict(list)] + shared
+
+        self.body.visit(vulns, shared, stack, out_sinks)
+
+        body_context, shared = shared[0], shared[1:]
+
+        merge_shared(body_context, shared)
+
+        self.body.visit(vulns, shared, stack, out_sinks)
 
         stack = stack[1:]
 
@@ -346,7 +379,7 @@ class BlockStatement:
         ret += " " * level + "}"
         return ret
 
-    def visit(self, vulns, shared, stack):
+    def visit(self, vulns, shared, stack, out_sinks):
         for stm in self.statements:
-            stm.visit(vulns, shared, stack)
+            stm.visit(vulns, shared, stack, out_sinks)
         return
