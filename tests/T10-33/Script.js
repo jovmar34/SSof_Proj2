@@ -1,5 +1,5 @@
-a = source();
-if (1) {
+a = source(); // [{'a': source}]
+if (1) { // []
     if (1) {
         a = wait();
     }

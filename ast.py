@@ -3,11 +3,9 @@ from collections import defaultdict, OrderedDict
 
 def merge_shared(context, shared, replace=False):
     for var in context:
-        if var not in shared[0]:
+        if replace or var not in shared[0]:
             shared[0][var] = context[var]
             continue
-        if replace:
-            shared[0][var] = context[var]
         for source in context[var]:
             if source not in shared[0][var]:
                 shared[0][var] += [source]
@@ -161,7 +159,9 @@ class CallExpression:
             args_sources += source
 
         args_sources = list(OrderedDict.fromkeys(args_sources))
-        my_sinks = self.func.sinks(vulns, shared, args_sources)
+        sources = list(OrderedDict.fromkeys(combine_stack(stack) + args_sources))
+
+        my_sinks = self.func.sinks(vulns, shared, sources)
         
         if len(my_sinks) > 0:
             print_sink(my_sinks, out_sinks)
@@ -204,9 +204,9 @@ class MemberExpression:
             if self.object.getName() in level:
                 share = level[self.object.getName()]
                 break
-
+        
         for prefix in share:
-            names += [prefix + "." + self.property.getName()]
+            names += [prefix[0] + "." + self.property.getName()]
 
         sinks = []
         
@@ -307,7 +307,7 @@ class IfStatement:
         for vuln in aux_test_source:
             if vuln[0] in vulns:
                 test_source += [vuln]
-
+        
         stack = [test_source] + stack
 
         shared = [defaultdict(list)] + shared
